@@ -1,0 +1,8 @@
+camera
+	origine { 200 0 0 }
+
+object
+	sphere
+		origine { 100 10 0 }
+		radius { 50 }
+		color { 255 0 0 }

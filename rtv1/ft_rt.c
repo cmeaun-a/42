@@ -6,76 +6,56 @@
 /*   By: cmeaun-a <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/03/17 04:03:47 by cmeaun-a          #+#    #+#             */
-/*   Updated: 2017/03/17 05:55:14 by cmeaun-a         ###   ########.fr       */
+/*   Updated: 2017/04/21 03:33:51 by cmeaun-a         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "rtv1.h"
 
-t_coord		ft_distance(t_coord *c1, t_coord *c2)
+static void	ft_init_scene(t_ray *r)
 {
-	t_coord res;
-
-	res.x = c1->x - c2->x;
-	res.y = c1->y - c2->y;
-	res.z = c1->z - c2->z;
-	return (res);
+	r->dir.x = 0;
+	r->dir.y = 0;
+	r->dir.z = 1;
+	r->eye.z = 0;
 }
 
-float		ft_multi(t_coord *c1, t_coord *c2)
+void		ft_scene(t_sdl *sdl, t_scene *scene)
 {
-	return (c1->x * c2->x + c1->y * c2->y + c1->z * c2->z);
-}
+	int			x;
+	int			y;
+	t_ray		r;
 
-int			ft_discriminant(t_ray *r, t_sphere *s)
-{
-	float	a;
-	float	b;
-	float	c;
-	float	discr;
-	t_coord	dist;
-
-	a = ft_multi(&r->dir, &r->dir);
-	dist = ft_distance(&r->start, &s->pos);
-	b = 2 * ft_multi(&r->dir, &dist);
-	c = ft_multi(&dist, &dist) - (s->radius * s->radius);
-	discr = b * b - 4 * a * c;
-	if (discr < 0)
-		return (0);
-	else
-		return (1);
-}
-
-void		ft_rt(t_env *e)
-{
-	int x;
-	int y;
-	t_sphere s;
-	t_ray r;
-
-	s.pos.x = L / 2;
-	s.pos.y = H / 2;
-	s.pos.z = 100;
-	s.radius = 100;
-
-	r.dir.x = 0;
-	r.dir.y = 0;
-	r.dir.z = 1;
-	r.start.z = 0;
+	ft_init_scene(&r);
+	while ((scene)->obj)
+	{
 	y = 0;
 	while (y < H)
 	{
-		r.start.y = y;
+		r.eye.y = y;
 		x = 0;
 		while (x < L)
 		{
-			r.start.x = x;
-			if (ft_discriminant(&r, &s))
-				ft_put_pixel_to_image(e, x, y, 0x7F0000);
+			r.eye.x = x;
+			if (ft_sphere(&r, ((t_sphere *)((scene)->obj->data))))
+			{
+				sdl->pixels[y * L + x] = ((t_sphere *)((scene)->obj->data))->color;
+			}
+//			if (ft_cone(&r, &co))
+//			{
+//				ft_put_pixel_to_image(e, x, y, rgb(250 * (1 - s.t / s.radius),
+//					150 * (1 - s.t / s.radius), 150 * (1 - s.t / s.radius)));
+//				printf("x = %d,\t y = %d,\t s.t = %.2f\n", x, y, co.t);
+//			}
+//			if (ft_cylindre(&r, &c))
+//				ft_put_pixel_to_image(e, x, y, rgb(150 * (1 - c.t / c.radius),
+//					150 * (1 - c.t / c.radius), 150 * (1 - c.t / c.radius)));
 			else
-				ft_put_pixel_to_image(e, x, y, 0x000000);
+				sdl->pixels[y * L + x] = 0x000000;
 			x++;
 		}
 		y++;
+	}
+	(scene)->obj = (scene)->obj->next;
 	}
 }
